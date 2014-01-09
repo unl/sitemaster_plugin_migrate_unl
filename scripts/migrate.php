@@ -109,7 +109,7 @@ function migrateSite($base_url, $data)
             $role = getRole($role_name);
             if (!$membership_role = \SiteMaster\Registry\Site\Member\Role::getByRoleIDANDMembershipID($role->id, $membership->id)) {
                 echo "\tCreating role for $uid and $role_name " . $uid . PHP_EOL;
-                if (!$membership_role = \SiteMaster\Registry\Site\Member\Role::createRole($role, $membership)) {
+                if (!$membership_role = \SiteMaster\Registry\Site\Member\Role::createRoleForSiteMember($role, $membership)) {
                     echo "\tUnable to create membership role for $uid and $role_name" . PHP_EOL;
                     continue;
                 }
