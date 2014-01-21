@@ -2,7 +2,8 @@
 ini_set('display_errors', true);
 
 //Initialize all settings and autoloaders
-require_once(__DIR__ . '/../../../init.php');
+//require_once(__DIR__ . '/../../../init.php');
+require_once(__DIR__ . '/../../sitemaster/init.php');
 
 /**
  * Contains all the unique roles that have been imported so far
@@ -32,10 +33,10 @@ function getUser($uid)
         return $all_users[$uid];
     }
 
-    if (!$user = \SiteMaster\User\User::getByUIDAndProvider($uid, 'UNL')) {
+    if (!$user = \SiteMaster\Core\User\User::getByUIDAndProvider($uid, 'UNL')) {
         echo "\tCreating User $uid " . PHP_EOL;
         $info = \SiteMaster\Plugins\Auth_Unl\Auth::getUserInfo($uid);
-        if (!$user = \SiteMaster\User\User::createUser($uid, 'UNL', $info)) {
+        if (!$user = \SiteMaster\Core\User\User::createUser($uid, 'UNL', $info)) {
             echo "\tUnable to create user $uid" . PHP_EOL;
             return false;
         }
@@ -53,8 +54,8 @@ function getRole($role_name)
         return $all_roles[$role_name];
     }
     
-    if (!$role = \SiteMaster\Registry\Site\Role::getByRoleName($role_name)) {
-        $role = \SiteMaster\Registry\Site\Role::createRole($role_name);
+    if (!$role = \SiteMaster\Core\Registry\Site\Role::getByRoleName($role_name)) {
+        $role = \SiteMaster\Core\Registry\Site\Role::createRole($role_name);
     }
 
     $all_roles[$role_name] = $role;
@@ -66,10 +67,10 @@ function migrateSite($base_url, $data)
 {
     echo "Importing " . $base_url . PHP_EOL;
     
-    if (!$site = \SiteMaster\Registry\Site::getByBaseURL($base_url)) {
+    if (!$site = \SiteMaster\Core\Registry\Site::getByBaseURL($base_url)) {
         //Add the site
         echo "\tAdding site " . $base_url . PHP_EOL;
-        if (!$site = \SiteMaster\Registry\Site::createNewSite($base_url, $data)) {
+        if (!$site = \SiteMaster\Core\Registry\Site::createNewSite($base_url, $data)) {
             echo "\tUnable to add site" . PHP_EOL;
             return false;
         }
@@ -88,13 +89,13 @@ function migrateSite($base_url, $data)
         }
 
         //Get the site membership for this user
-        if (!$membership = \SiteMaster\Registry\Site\Member::getByUserIDAndSiteID($user->id, $site->id)) {
+        if (!$membership = \SiteMaster\Core\Registry\Site\Member::getByUserIDAndSiteID($user->id, $site->id)) {
             echo "\tCreating membership for $uid " . PHP_EOL;
             $fields = array(
                 'status' => 'APPROVED',
                 'source' => 'migrate_unl'
             );
-            if (!$membership = \SiteMaster\Registry\Site\Member::createMembership($user, $site, $fields)) {
+            if (!$membership = \SiteMaster\Core\Registry\Site\Member::createMembership($user, $site, $fields)) {
                 echo "\tUnable to create membership for $uid" . PHP_EOL;
                 continue;
             }
@@ -107,9 +108,9 @@ function migrateSite($base_url, $data)
         
         foreach ($member_data['roles'] as $role_name) {
             $role = getRole($role_name);
-            if (!$membership_role = \SiteMaster\Registry\Site\Member\Role::getByRoleIDANDMembershipID($role->id, $membership->id)) {
+            if (!$membership_role = \SiteMaster\Core\Registry\Site\Member\Role::getByRoleIDANDMembershipID($role->id, $membership->id)) {
                 echo "\tCreating role for $uid and $role_name " . $uid . PHP_EOL;
-                if (!$membership_role = \SiteMaster\Registry\Site\Member\Role::createRole($role, $membership)) {
+                if (!$membership_role = \SiteMaster\Core\Registry\Site\Member\Role::createRoleForSiteMember($role, $membership)) {
                     echo "\tUnable to create membership role for $uid and $role_name" . PHP_EOL;
                     continue;
                 }
